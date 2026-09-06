@@ -1,48 +1,34 @@
-# zmk-config-moNa2
+# moNa2 and microball ZMK configuration
 
-<img src="keymap-drawer/mona2_01.svg">
+This repository manages two independent ZMK firmware configurations.
 
-# COROPITを使用するへ
+| Keyboard | Keymap | Firmware artifacts |
+| --- | --- | --- |
+| moNa2 | `config/mona2.keymap` | `mona2-left`, `mona2-right` |
+| microball | `config/microball.keymap` | `microball-left`, `microball-right` |
 
-COROPITを使用する方は以下のようにコードを編集してください。
+The configurations intentionally use separate ZMK workspaces: moNa2 uses the
+current configuration and microball keeps its compatible ZMK v0.2 environment
+and discrete encoder-scroll behavior. Editing one keymap does not change the
+other keyboard.
 
-mona2_r.overlay
+## Firmware builds
 
-修正前
-```
-  trackball_central: trackball_central@0 {
-        status = "okay";
-        compatible = "pixart,pmw3610";  //トラボセンサ用のドライバとバインド
-        reg = <0>;
-        spi-max-frequency = <2000000>;
-        irq-gpios = <&gpio0 2 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>; //P0.02を指定(MOTION)
-        cpi = <600>;
-        //swap-xy;
-        //invert-x; //COROPIT版ではコメントアウトを外す
-        //invert-y; //COROPIT版ではコメントアウトを外す
-        evt-type = <INPUT_EV_REL>;
-        x-input-code = <INPUT_REL_X>;
-        y-input-code = <INPUT_REL_Y>;
-    };
-};
+The `Build keyboards` workflow creates the four keyboard firmware files and a
+`settings-reset` UF2. Each build also uploads a single `firmware` artifact
+containing all five files. Flash the left and right UF2 that match the keyboard
+being updated.
 
-```
-**修正後**
-```
-  trackball_central: trackball_central@0 {
-        status = "okay";
-        compatible = "pixart,pmw3610";  //トラボセンサ用のドライバとバインド
-        reg = <0>;
-        spi-max-frequency = <2000000>;
-        irq-gpios = <&gpio0 2 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>; //P0.02を指定(MOTION)
-        cpi = <600>;
-        //swap-xy;
-        invert-x; //COROPIT版ではコメントアウトを外す
-        invert-y; //COROPIT版ではコメントアウトを外す
-        evt-type = <INPUT_EV_REL>;
-        x-input-code = <INPUT_REL_X>;
-        y-input-code = <INPUT_REL_Y>;
-    };
-};
+Both right-side firmware builds include the USB UART ZMK Studio RPC snippet.
+moNa2 is also configured for BLE pairing and Studio unlocking in
+`config/mona2_r.conf`.
 
-```
+## Keymap drawings
+
+The `Draw ZMK Keymap` workflow produces `mona2.svg` and `microball.svg` in its
+`drawings` artifact whenever either keymap or its layout JSON changes.
+
+## COROPIT orientation
+
+The moNa2 right-side overlay already enables `invert-x` and `invert-y` for
+COROPIT. No additional overlay edit is required.
