@@ -1,5 +1,81 @@
+name: Build keyboards
 on: [push, pull_request, workflow_dispatch]
-
+permissions:
+  contents: read
 jobs:
   build:
-    uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@v0.3.0
+    runs-on: ubuntu-latest
+    container: zmkfirmware/zmk-build-arm:stable
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {keyboard: mona2, shield: "mona2_r rgbled_adapter", artifact: mona2-right, snippet: studio-rpc-usb-uart}
+          - {keyboard: mona2, shield: "mona2_l rgbled_adapter", artifact: mona2-left}
+          - {keyboard: microball, shield: microball_R, artifact: microball-right, snippet: studio-rpc-usb-uart}
+          - {keyboard: microball, shield: microball_L, artifact: microball-left}
+          - {keyboard: mona2, shield: settings_reset, artifact: settings-reset}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare keyboard workspace
+        shell: bash
+        env:
+          KEYBOARD: ${{ matrix.keyboard }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/keyboard-build/config
+          if [ "$KEYBOARD" = microball ]; then
+            cp -R keyboards/microball /tmp/keyboard-module
+            cp -R keyboards/microball/config/. /tmp/keyboard-build/config/
+            cp config/microball.keymap /tmp/keyboard-build/config/
+          else
+            mkdir -p /tmp/keyboard-module
+            cp -R boards zephyr /tmp/keyboard-module/
+            cp config/west.yml config/mona2* /tmp/keyboard-build/config/
+          fi
+      - name: Fetch dependencies
+        working-directory: /tmp/keyboard-build
+        run: |
+          west init -l config
+          west update --fetch-opt=--filter=tree:0
+          west zephyr-export
+      - name: Build
+        working-directory: /tmp/keyboard-build
+        shell: bash
+        env:
+          SHIELD: ${{ matrix.shield }}
+          SNIPPET: ${{ matrix.snippet }}
+        run: |
+          set -euo pipefail
+          args=()
+          if [ -n "$SNIPPET" ]; then args+=(-S "$SNIPPET"); fi
+          west build -s zmk/app -d build -b seeeduino_xiao_ble "${args[@]}" -- -DZMK_CONFIG=/tmp/keyboard-build/config "-DSHIELD=$SHIELD" -DZMK_EXTRA_MODULES=/tmp/keyboard-module
+      - name: Collect firmware
+        env:
+          ARTIFACT: ${{ matrix.artifact }}
+        run: |
+          mkdir -p /tmp/firmware
+          cp /tmp/keyboard-build/build/zephyr/zmk.uf2 "/tmp/firmware/$ARTIFACT.uf2"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: firmware-${{ matrix.artifact }}
+          path: /tmp/firmware/*.uf2
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: diagnostics-${{ matrix.artifact }}
+          include-hidden-files: true
+          path: |
+            /tmp/keyboard-build/build/zephyr/.config
+            /tmp/keyboard-build/build/zephyr/zephyr.dts
+            /tmp/keyboard-build/build/zephyr/zephyr.dts.pre
+  merge:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/upload-artifact/merge@v4
+        with:
+          name: firmware
+          pattern: firmware-*
+          delete-merged: true

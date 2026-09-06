@@ -1,0 +1,4 @@
+zephyr_library()
+zephyr_library_sources_ifdef(CONFIG_MICROBALL_BEHAVIOR_DISCRETE_SCROLL
+  src/behaviors/behavior_discrete_scroll.c
+)

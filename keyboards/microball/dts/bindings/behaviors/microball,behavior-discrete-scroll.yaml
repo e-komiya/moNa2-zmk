@@ -1,0 +1,22 @@
+# Copyright (c) 2026
+# SPDX-License-Identifier: MIT
+
+description: Discrete wheel scroll behavior for encoder use
+
+compatible: "microball,behavior-discrete-scroll"
+
+properties:
+  label:
+    type: string
+    required: false
+    deprecated: true
+  "#sensor-binding-cells":
+    type: int
+    required: true
+    const: 0
+  cw-delta:
+    type: int
+    default: -1
+  ccw-delta:
+    type: int
+    default: 1

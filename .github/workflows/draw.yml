@@ -5,7 +5,8 @@ on:
   # push時に自動で実行する場合は、以下のコメントアウトを外す
   push:
     paths:
-      - "config/mona2.keymap"
+      - "config/*.keymap"
+      - "config/*.json"
       - "keymap_drawer.config.yaml"
       - "config/mona2.dtsi"
 
@@ -21,4 +22,6 @@ jobs:
       json_path: "config"
       config_path: "keymap_drawer.config.yaml" # config file, ignored if not exists
       output_folder: "keymap-drawer"
-      destination: "both"
+      destination: "artifact"
+      west_config_path: ""
+      fail_on_error: true

@@ -1,0 +1,22 @@
+if SHIELD_MICROBALL_R
+
+config ZMK_KEYBOARD_NAME
+    default "microball_R"
+
+config ZMK_SPLIT
+    default y
+
+config ZMK_SPLIT_ROLE_CENTRAL
+    default y
+
+endif
+
+if SHIELD_MICROBALL_L
+
+config ZMK_KEYBOARD_NAME
+    default "microball_L"
+
+config ZMK_SPLIT
+    default y
+
+endif

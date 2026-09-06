@@ -1,0 +1,3 @@
+config MICROBALL_BEHAVIOR_DISCRETE_SCROLL
+    bool "Enable Microball discrete scroll behavior"
+    default y
