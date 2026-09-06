@@ -17,6 +17,7 @@
 #include <zmk/behavior.h>
 #include <zmk/keymap.h>
 #include <zmk/sensors.h>
+#include <zmk/virtual_key_position.h>
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
@@ -91,7 +92,7 @@ static int discrete_scroll_process(struct zmk_behavior_binding *binding,
     }
 
     const int16_t delta = (triggers > 0) ? cfg->cw_delta : cfg->ccw_delta;
-    const int16_t amount = delta * ABS(triggers);
+    const int16_t amount = delta * (triggers > 0 ? triggers : -triggers);
 
     LOG_DBG("Reporting wheel amount %d for %d trigger(s)", amount, triggers);
 
