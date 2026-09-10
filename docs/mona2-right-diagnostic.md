@@ -15,7 +15,7 @@ GitHubの `Build moNa2 right diagnostic firmware` ワークフローを `Run wor
 
 ## USBログ
 
-このビルドはUSB CDC ACMログも有効にする。Windowsのデバイスマネージャーで新しく現れるCOMポートを確認し、115200 baud・8-N-1でシリアル端末を開く。キーを押したとき、`kscan_matrix_read` の `row`・`col`・`state on/off` が出れば、キーコード変換前の生スキャンイベントを確認できる。N位置では `row 2, col 6`（0始まり）が期待値である。
+このビルドはUSB CDC ACMログも有効にする。Windowsのデバイスマネージャーで新しく現れるCOMポートを確認し、115200 baud・8-N-1でシリアル端末を開く。キーを押したとき、`kscan_matrix_read` の物理 `row`・物理 `col`・`state on/off` が出れば、キーコード変換前の生スキャンイベントを確認できる。N位置では `row 2, col 0`（物理列番号、0始まり）、変換後の `position 28` が期待値である。
 
 ## 注意
 
