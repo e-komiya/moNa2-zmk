@@ -11,6 +11,7 @@ jobs:
       matrix:
         include:
           - {keyboard: mona2, shield: "mona2_r rgbled_adapter", artifact: mona2-right, snippet: studio-rpc-usb-uart}
+          - {keyboard: mona2, shield: "mona2_r rgbled_adapter", artifact: mona2-right-diagnostic, snippet: zmk-usb-logging, diagnostic: true}
           - {keyboard: mona2, shield: "mona2_l rgbled_adapter", artifact: mona2-left}
           - {keyboard: microball, shield: microball_R, artifact: microball-right, snippet: studio-rpc-usb-uart}
           - {keyboard: microball, shield: microball_L, artifact: microball-left}
@@ -32,6 +33,10 @@ jobs:
             mkdir -p /tmp/keyboard-module
             cp -R boards zephyr /tmp/keyboard-module/
             cp config/west.yml config/mona2* /tmp/keyboard-build/config/
+          fi
+          if [ "${{ matrix.diagnostic || false }}" = "true" ]; then
+            cp config/mona2_diag.keymap /tmp/keyboard-build/config/mona2.keymap
+            cp config/mona2_diag.conf /tmp/keyboard-build/config/mona2_r.conf
           fi
       - name: Fetch dependencies
         working-directory: /tmp/keyboard-build
