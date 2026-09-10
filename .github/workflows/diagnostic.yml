@@ -1,0 +1,47 @@
+name: Build moNa2 right diagnostic firmware
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-diagnostic:
+    runs-on: ubuntu-latest
+    container: zmkfirmware/zmk-build-arm:stable
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare keyboard workspace
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/keyboard-build/config /tmp/keyboard-module
+          cp -R boards zephyr /tmp/keyboard-module/
+          cp config/west.yml /tmp/keyboard-build/config/
+          cp config/mona2_diag.keymap /tmp/keyboard-build/config/mona2.keymap
+          cp config/mona2_diag.conf /tmp/keyboard-build/config/mona2_r.conf
+      - name: Fetch dependencies
+        working-directory: /tmp/keyboard-build
+        run: |
+          set -euo pipefail
+          west init -l config
+          west update --fetch-opt=--filter=tree:0
+          west zephyr-export
+      - name: Build
+        working-directory: /tmp/keyboard-build
+        run: |
+          set -euo pipefail
+          west build -s zmk/app -d build -b seeeduino_xiao_ble -S zmk-usb-logging -- \
+            -DZMK_CONFIG=/tmp/keyboard-build/config \
+            -DSHIELD="mona2_r rgbled_adapter" \
+            -DZMK_EXTRA_MODULES=/tmp/keyboard-module
+      - name: Collect firmware and diagnostics
+        run: |
+          mkdir -p /tmp/firmware
+          cp /tmp/keyboard-build/build/zephyr/zmk.uf2 /tmp/firmware/mona2_r_diagnostic.uf2
+          cp /tmp/keyboard-build/build/zephyr/.config /tmp/firmware/diagnostic.config
+          cp /tmp/keyboard-build/build/zephyr/zephyr.dts /tmp/firmware/diagnostic.dts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mona2-right-diagnostic
+          path: /tmp/firmware/*
