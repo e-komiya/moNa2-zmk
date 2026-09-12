@@ -36,7 +36,7 @@ jobs:
           cp build/zephyr/.config /tmp/raw-artifact/build.config
           cp build/zephyr/zephyr.dts /tmp/raw-artifact/build-zephyr.dts
           cp build/zephyr/zephyr.elf /tmp/raw-artifact/firmware.elf
-          west manifest --freeze > /tmp/raw-artifact/west-frozen.yml
+          west manifest --resolve > /tmp/raw-artifact/west-resolved.yml
           sha256sum /tmp/raw-artifact/*.uf2 > /tmp/raw-artifact/SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
