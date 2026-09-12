@@ -19,7 +19,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Fetch pinned Zephyr workspace
         run: |
-          west init -m https://github.com/zmkfirmware/zephyr --mr dacab4875df72109b96cc8977547a0dc04875bcd /tmp/raw-build
+          git init /tmp/raw-build/zephyr
+          git -C /tmp/raw-build/zephyr remote add origin https://github.com/zmkfirmware/zephyr
+          git -C /tmp/raw-build/zephyr fetch --depth=1 origin dacab4875df72109b96cc8977547a0dc04875bcd
+          git -C /tmp/raw-build/zephyr checkout --detach FETCH_HEAD
+          west init -l /tmp/raw-build/zephyr
           cd /tmp/raw-build
           west update hal_nordic cmsis tinycrypt --fetch-opt=--filter=tree:0
           west zephyr-export
