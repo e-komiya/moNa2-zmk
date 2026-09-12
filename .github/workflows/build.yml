@@ -1,9 +1,46 @@
 name: Build keyboards
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      raw_gpio:
+        description: Build standalone right moNa2 raw GPIO diagnostic only
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
+  raw-gpio:
+    if: inputs.raw_gpio == true
+    runs-on: ubuntu-latest
+    container: zmkfirmware/zmk-build-arm:stable
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch pinned Zephyr workspace
+        run: |
+          west init -m https://github.com/zmkfirmware/zephyr --mr dacab4875df72109b96cc8977547a0dc04875bcd /tmp/raw-build
+          cd /tmp/raw-build
+          west update hal_nordic cmsis tinycrypt --fetch-opt=--filter=tree:0
+          west zephyr-export
+      - name: Build standalone GPIO diagnostic
+        run: |
+          cd /tmp/raw-build
+          west build -s "$GITHUB_WORKSPACE/diagnostics/raw-gpio" -d build -b seeeduino_xiao_ble
+          mkdir -p /tmp/raw-artifact
+          cp build/zephyr/zephyr.uf2 /tmp/raw-artifact/mona2-right-raw-gpio-v1.uf2
+          cp build/zephyr/.config /tmp/raw-artifact/build.config
+          cp build/zephyr/zephyr.dts /tmp/raw-artifact/build-zephyr.dts
+          cp build/zephyr/zephyr.elf /tmp/raw-artifact/firmware.elf
+          west manifest --freeze > /tmp/raw-artifact/west-frozen.yml
+          sha256sum /tmp/raw-artifact/*.uf2 > /tmp/raw-artifact/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mona2-right-raw-gpio-v1
+          path: /tmp/raw-artifact/
+          if-no-files-found: error
   build:
+    if: inputs.raw_gpio != true
     runs-on: ubuntu-latest
     container: zmkfirmware/zmk-build-arm:stable
     strategy:
