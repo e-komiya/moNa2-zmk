@@ -32,7 +32,7 @@ jobs:
           cd /tmp/raw-build
           west build -s "$GITHUB_WORKSPACE/diagnostics/raw-gpio" -d build -b seeeduino_xiao_ble
           mkdir -p /tmp/raw-artifact
-          cp build/zephyr/zephyr.uf2 /tmp/raw-artifact/mona2-right-raw-gpio-v1.uf2
+          cp build/zephyr/zephyr.uf2 /tmp/raw-artifact/mona2-right-raw-gpio-v2.uf2
           cp build/zephyr/.config /tmp/raw-artifact/build.config
           cp build/zephyr/zephyr.dts /tmp/raw-artifact/build-zephyr.dts
           cp build/zephyr/zephyr.elf /tmp/raw-artifact/firmware.elf
@@ -40,7 +40,7 @@ jobs:
           sha256sum /tmp/raw-artifact/*.uf2 > /tmp/raw-artifact/SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: mona2-right-raw-gpio-v1
+          name: mona2-right-raw-gpio-v2
           path: /tmp/raw-artifact/
           if-no-files-found: error
   build:
