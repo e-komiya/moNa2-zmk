@@ -84,3 +84,13 @@ ZephyrはZMK 0.3系の`dacab4875df72109b96cc8977547a0dc04875bcd`に固定。ボ�
 - [使用ZephyrのUSBコンソール実装例](https://github.com/zmkfirmware/zephyr/tree/dacab4875df72109b96cc8977547a0dc04875bcd/samples/subsys/usb/console)
 
 本文に先行する対応表のSHA-256: `5D3C5DFA346C5A883EC1DDEF0FB19D35168967B224C0B2D3B3FEA7DB110342E9`。
+
+## 配布UF2の検証記録
+
+- [成功したビルド34699687307](https://github.com/e-komiya/moNa2-zmk/actions/runs/34699687307)、ソースcommit `e2d1948`。
+- サイズ73,216バイト、UF2は143ブロック。nRF52840 family IDは`0xADA52840`。
+- ペイロード範囲は`0x27000`以上`0x2FF00`未満。アプリ用領域内であり、SoftDevice・ブートローダー・保存設定領域へのペイロードを含まない。
+- SHA-256: `8169B1D512156ED5C38E506593F55EEEB394C4CFE61CA439DA9591F962801174`。
+- 生成設定ではBluetooth・USB HID・SPI・I2C・Flashドライバ・Settings無効、USB CDC有効。アプリ内のキー走査や周辺機能との競合を排除した構成。
+- `verify-uf2.ps1`でマジック値・ファミリー・全ブロック番号・書込み範囲・ベクタテーブル・識別文字列を検査してPASS。
+- これはビルドとファイル検査の結果。実物XIAOでのUSB列挙・コマンド受付・GPIO電圧・N押下応答は未検証であり、上記手順で確認する。
