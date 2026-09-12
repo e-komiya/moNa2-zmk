@@ -31,7 +31,7 @@ for ($offset = 0; $offset -lt $data.Length; $offset += 512) {
     }
 }
 if (!$foundVectors) { throw 'Application vector table absent' }
-if (![Text.Encoding]::ASCII.GetString($data).Contains('MONA2-RAW-GPIO-v2')) { throw 'Diagnostic identifier absent' }
+if (![Text.Encoding]::ASCII.GetString($data).Contains('MONA2-DIAG-v3')) { throw 'Diagnostic identifier absent' }
 [pscustomobject]@{
     Result = 'PASS'
     Blocks = $count
