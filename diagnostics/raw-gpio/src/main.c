@@ -2,11 +2,9 @@
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/uart.h>
 #include <zephyr/usb/usb_device.h>
-#include <zephyr/drivers/adc.h>
 #include <zephyr/sys/atomic.h>
 #include <zephyr/sys/printk.h>
 #include <hal/nrf_gpio.h>
-#include <hal/nrf_saadc.h>
 #include <string.h>
 
 #define ID "MONA2-DIAG-v3"
@@ -15,7 +13,6 @@ static const uint32_t col[]={C0,46,45,44,10};
 static const uint32_t row[]={3,28,29,43};
 static const uint32_t analog_pin[]={2,3,28,29,4,5};
 static const struct device *const uart=DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
-static const struct device *const adc=DEVICE_DT_GET(DT_NODELABEL(adc));
 static atomic_t command;
 static uint8_t selected;
 static bool active,batch;
@@ -66,13 +63,7 @@ static void gpio_info(void){
     for(int i=0;i<5;i++) printk("COL C%d pin=%u CNF=%08x\n",i,(unsigned)col[i],(unsigned)(col[i]<32?NRF_P0->PIN_CNF[col[i]]:NRF_P1->PIN_CNF[col[i]-32]));
     for(int i=0;i<4;i++) printk("ROW R%d pin=%u CNF=%08x\n",i,(unsigned)row[i],(unsigned)(row[i]<32?NRF_P0->PIN_CNF[row[i]]:NRF_P1->PIN_CNF[row[i]-32]));
 }
-static void adc_report(void){
-    if(!device_is_ready(adc)){printk("ADC unavailable\n");return;}
-    struct adc_channel_cfg cfg={.gain=ADC_GAIN_1_6,.reference=ADC_REF_INTERNAL,.acquisition_time=ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS,40),.channel_id=0,.input_positive=NRF_SAADC_INPUT_AIN0};
-    int16_t s[7]={0}; struct adc_sequence seq={.channels=BIT_MASK(7),.buffer=s,.buffer_size=sizeof(s),.resolution=12};
-    int err=0; for(int i=0;i<7;i++){cfg.channel_id=i;cfg.input_positive=(i<6?(enum nrf_saadc_input)(NRF_SAADC_INPUT_AIN0+i):NRF_SAADC_INPUT_VDD);err|=adc_channel_setup(adc,&cfg);} if(!err)err=adc_read(adc,&seq);
-    if(err){printk("ADC error=%d\n",err);return;} printk("ADC mV A0=%d A1=%d A2=%d A3=%d A4=%d A5=%d VDD=%d\n",s[0]*3600/4096,s[1]*3600/4096,s[2]*3600/4096,s[3]*3600/4096,s[4]*3600/4096,s[5]*3600/4096,s[6]*3600/4096);
-}
+static void adc_report(void){ printk("ADC: not sampled in this GPIO-safe build; use the GPIO 0/1 logs and an external DMM for voltage.\n"); }
 static void menu(void){ printk("\n%s READY (right board only)\n? menu i GPIO a ADC 0-4 select s HIZ l LOW f scan0 m scan100 t scan1000 z scanHIZ b batch x stop\nRows: R0=D1/P0.03 R1=H=D2/P0.28 R2=N=D3/P0.29 R3=D6/P1.11; columns C0=D10/P1.15 C1=D9 C2=D8 C3=D7 C4=NFC2/P0.10\n"); }
 static void begin(const char *m,int sec,bool low){ if(!nfc_gpio() && (low||m[0]!='F')){printk("REFUSED NFC pin is not GPIO; no UICR writes\n");return;} release_all();rows_input();reset_stats();mode=m;configure(selected,low);active=true;deadline=k_uptime_get()+sec*1000;next_report=k_uptime_get()+1000;printk("BEGIN MODE=%s SEL=C%u duration=%us; hold N for selected tests\n",mode,selected,sec);}
 static void rx(const struct device *d,void *u){ uint8_t c;ARG_UNUSED(u);if(!uart_irq_update(d))return;while(uart_irq_rx_ready(d)&&uart_fifo_read(d,&c,1)==1){if(c=='?'||c=='x'||c=='X')atomic_set(&command,c=='?'?'?':'x');else if(c>='0'&&c<='4')atomic_set(&command,c);else if(c=='b'||c=='B'||c=='s'||c=='S'||c=='l'||c=='L'||c=='f'||c=='F'||c=='m'||c=='M'||c=='t'||c=='T'||c=='z'||c=='Z'||c=='i'||c=='I'||c=='a'||c=='A'||c=='p'||c=='P')atomic_cas(&command,0,c|0x20);}}
