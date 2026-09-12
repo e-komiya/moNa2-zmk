@@ -6,7 +6,7 @@
 #include <zephyr/sys/atomic.h>
 #include <zephyr/sys/printk.h>
 #include <hal/nrf_gpio.h>
-#include <zephyr/dt-bindings/adc/nrf-saadc.h>
+#include <hal/nrf_saadc.h>
 #include <string.h>
 
 #define ID "MONA2-DIAG-v3"
