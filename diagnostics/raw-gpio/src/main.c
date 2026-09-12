@@ -68,9 +68,9 @@ static void gpio_info(void){
 }
 static void adc_report(void){
     if(!device_is_ready(adc)){printk("ADC unavailable\n");return;}
-    struct adc_channel_cfg cfg={.gain=ADC_GAIN_1_6,.reference=ADC_REF_INTERNAL,.acquisition_time=ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS,40),.channel_id=0,.input_positive=NRF_SAADC_AIN0};
+    struct adc_channel_cfg cfg={.gain=ADC_GAIN_1_6,.reference=ADC_REF_INTERNAL,.acquisition_time=ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS,40),.channel_id=0,.input_positive=NRF_SAADC_INPUT_AIN0};
     int16_t s[7]={0}; struct adc_sequence seq={.channels=BIT_MASK(7),.buffer=s,.buffer_size=sizeof(s),.resolution=12};
-    int err=0; for(int i=0;i<7;i++){cfg.channel_id=i;cfg.input_positive=(i<6?(enum nrf_saadc_input)(NRF_SAADC_AIN0+i):NRF_SAADC_INPUT_VDD);err|=adc_channel_setup(adc,&cfg);} if(!err)err=adc_read(adc,&seq);
+    int err=0; for(int i=0;i<7;i++){cfg.channel_id=i;cfg.input_positive=(i<6?(enum nrf_saadc_input)(NRF_SAADC_INPUT_AIN0+i):NRF_SAADC_INPUT_VDD);err|=adc_channel_setup(adc,&cfg);} if(!err)err=adc_read(adc,&seq);
     if(err){printk("ADC error=%d\n",err);return;} printk("ADC mV A0=%d A1=%d A2=%d A3=%d A4=%d A5=%d VDD=%d\n",s[0]*3600/4096,s[1]*3600/4096,s[2]*3600/4096,s[3]*3600/4096,s[4]*3600/4096,s[5]*3600/4096,s[6]*3600/4096);
 }
 static void menu(void){ printk("\n%s READY (right board only)\n? menu i GPIO a ADC 0-4 select s HIZ l LOW f scan0 m scan100 t scan1000 z scanHIZ b batch x stop\nRows: R0=D1/P0.03 R1=H=D2/P0.28 R2=N=D3/P0.29 R3=D6/P1.11; columns C0=D10/P1.15 C1=D9 C2=D8 C3=D7 C4=NFC2/P0.10\n"); }
