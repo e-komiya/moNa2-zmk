@@ -64,7 +64,7 @@ static void gpio_info(void){
     for(int i=0;i<4;i++) printk("ROW R%d pin=%u CNF=%08x\n",i,(unsigned)row[i],(unsigned)(row[i]<32?NRF_P0->PIN_CNF[row[i]]:NRF_P1->PIN_CNF[row[i]-32]));
 }
 static void adc_report(void){ printk("ADC: not sampled in this GPIO-safe build; use the GPIO 0/1 logs and an external DMM for voltage.\n"); }
-static void menu(void){ printk("\n%s READY (right board only)\n? menu i GPIO a ADC 0-4 select s HIZ l LOW f scan0 m scan100 t scan1000 z scanHIZ b batch x stop\nRows: R0=D1/P0.03 R1=H=D2/P0.28 R2=N=D3/P0.29 R3=D6/P1.11; columns C0=D10/P1.15 C1=D9 C2=D8 C3=D7 C4=NFC2/P0.10\n"); }
+static void menu(void){ printk("\n%s READY (right board only)\n? menu i GPIO a ADC 0-4 select s HIZ l LOW f scan0 m scan100 t scan1000 z scanHIZ b batch x stop\nRows: R0=D1/P0.03 R1=H=D2/P0.28 R2=N=D3/P0.29 R3=D6/P1.11; columns C0=D10/P1.15 C1=D9 C2=D8 C3=D7 C4=NFC2/P0.10\n",ID); }
 static void begin(const char *m,int sec,bool low){ if(!nfc_gpio() && (low||m[0]!='F')){printk("REFUSED NFC pin is not GPIO; no UICR writes\n");return;} release_all();rows_input();reset_stats();mode=m;configure(selected,low);active=true;deadline=k_uptime_get()+sec*1000;next_report=k_uptime_get()+1000;printk("BEGIN MODE=%s SEL=C%u duration=%us; hold N for selected tests\n",mode,selected,sec);}
 static void rx(const struct device *d,void *u){ uint8_t c;ARG_UNUSED(u);if(!uart_irq_update(d))return;while(uart_irq_rx_ready(d)&&uart_fifo_read(d,&c,1)==1){if(c=='?'||c=='x'||c=='X')atomic_set(&command,c=='?'?'?':'x');else if(c>='0'&&c<='4')atomic_set(&command,c);else if(c=='b'||c=='B'||c=='s'||c=='S'||c=='l'||c=='L'||c=='f'||c=='F'||c=='m'||c=='M'||c=='t'||c=='T'||c=='z'||c=='Z'||c=='i'||c=='I'||c=='a'||c=='A'||c=='p'||c=='P')atomic_cas(&command,0,c|0x20);}}
 
