@@ -1,0 +1,17 @@
+/ {
+    chosen {
+        zephyr,console = &diag_cdc;
+        /delete-property/ zephyr,shell-uart;
+        /delete-property/ zephyr,uart-mcumgr;
+        /delete-property/ zephyr,bt-mon-uart;
+        /delete-property/ zephyr,bt-c2h-uart;
+    };
+};
+&zephyr_udc0 {
+    diag_cdc: diag_cdc { compatible = "zephyr,cdc-acm-uart"; };
+};
+&uart0 { status = "disabled"; };
+&qspi { status = "disabled"; };
+&i2c0 { status = "disabled"; };
+&spi2 { status = "disabled"; };
+&adc { status = "disabled"; };

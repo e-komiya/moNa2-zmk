@@ -4,6 +4,10 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
+      trackball:
+        description: Build standalone trackball diagnostic only
+        type: boolean
+        default: false
       raw_gpio:
         description: Build standalone right moNa2 raw GPIO diagnostic only
         type: boolean
@@ -11,6 +15,35 @@ on:
 permissions:
   contents: read
 jobs:
+  trackball:
+    if: inputs.trackball == true
+    runs-on: ubuntu-latest
+    container: zmkfirmware/zmk-build-arm:stable
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch pinned workspace and build
+        run: |
+          git init /tmp/tb-build/zephyr
+          git -C /tmp/tb-build/zephyr remote add origin https://github.com/zmkfirmware/zephyr
+          git -C /tmp/tb-build/zephyr fetch --depth=1 origin dacab4875df72109b96cc8977547a0dc04875bcd
+          git -C /tmp/tb-build/zephyr checkout --detach FETCH_HEAD
+          west init -l /tmp/tb-build/zephyr
+          cd /tmp/tb-build
+          west update hal_nordic cmsis tinycrypt --fetch-opt=--filter=tree:0
+          west zephyr-export
+          west build -s "$GITHUB_WORKSPACE/diagnostics/trackball" -d build -b seeeduino_xiao_ble
+          mkdir -p /tmp/tb-artifact
+          cp build/zephyr/zephyr.uf2 /tmp/tb-artifact/mona2-right-trackball-diag-v1.uf2
+          cp build/zephyr/.config /tmp/tb-artifact/build.config
+          cp build/zephyr/zephyr.dts /tmp/tb-artifact/build-zephyr.dts
+          cp build/zephyr/zephyr.elf /tmp/tb-artifact/firmware.elf
+          west manifest --resolve > /tmp/tb-artifact/west-resolved.yml
+          sha256sum /tmp/tb-artifact/*.uf2 > /tmp/tb-artifact/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mona2-right-trackball-diag-v1
+          path: /tmp/tb-artifact/
+          if-no-files-found: error
   raw-gpio:
     if: inputs.raw_gpio == true
     runs-on: ubuntu-latest
@@ -44,7 +77,7 @@ jobs:
           path: /tmp/raw-artifact/
           if-no-files-found: error
   build:
-    if: inputs.raw_gpio != true
+    if: inputs.raw_gpio != true && inputs.trackball != true
     runs-on: ubuntu-latest
     container: zmkfirmware/zmk-build-arm:stable
     strategy:
