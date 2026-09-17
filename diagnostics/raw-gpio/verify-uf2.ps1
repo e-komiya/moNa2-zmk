@@ -1,4 +1,4 @@
-param([Parameter(Mandatory=$true)][string]$Path)
+param([Parameter(Mandatory=$true)][string]$Path, [string]$Identifier = 'MONA2-DIAG-v3')
 $ErrorActionPreference = 'Stop'
 $data = [IO.File]::ReadAllBytes((Resolve-Path -LiteralPath $Path).Path)
 if ($data.Length -eq 0 -or $data.Length % 512 -ne 0) { throw 'Invalid UF2 size' }
@@ -31,7 +31,7 @@ for ($offset = 0; $offset -lt $data.Length; $offset += 512) {
     }
 }
 if (!$foundVectors) { throw 'Application vector table absent' }
-if (![Text.Encoding]::ASCII.GetString($data).Contains('MONA2-DIAG-v3')) { throw 'Diagnostic identifier absent' }
+if (![Text.Encoding]::ASCII.GetString($data).Contains($Identifier)) { throw 'Diagnostic identifier absent' }
 [pscustomobject]@{
     Result = 'PASS'
     Blocks = $count
