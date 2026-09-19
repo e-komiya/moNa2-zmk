@@ -11,7 +11,7 @@
 #include <hal/nrf_gpio.h>
 #include <string.h>
 
-#define ID "MONA2-TRACKBALL-DIAG-v2"
+#define ID "MONA2-TRACKBALL-DIAG-v3"
 #define CS 9
 #define CLK 5
 #define SDIO 4
@@ -214,6 +214,59 @@ static bool check_write(void)
     return !fault && matched && restored == original;
 }
 
+static void write_clocked(uint8_t reg, uint8_t value)
+{
+    write_reg(0x41, 0xba);
+    k_busy_wait(300);
+    write_reg(reg, value);
+    write_reg(0x41, 0xb5);
+}
+
+static bool compare_run(void)
+{
+    uint8_t original = read_reg(0x11);
+    uint8_t motion = read_reg(0x02);
+    uint8_t obs = read_reg(0x2d);
+    printk("RUN_BEFORE PERF=%02x OBS=%02x MODE=%u MOTION=%02x LSR_FAULT=%u LP_VALID=%u\n",
+           original, obs, obs >> 6, motion, !!(motion & 4), !!(motion & 8));
+    if (interrupted() || (motion & 4)) {
+        printk("RUN_REFUSED bus/cancel or reported laser fault; no protection bypass\n");
+        return false;
+    }
+    write_clocked(0x11, 0xfd);
+    uint8_t perf = read_reg(0x11);
+    bool config_ok = !fault && perf == 0xfd;
+    printk("RUN_WRITE expected=fd actual=%02x match=%u\n", perf, (unsigned)config_ok);
+    bool passed = false;
+    if (config_ok) {
+        /* Give the mode change a frame boundary before clearing observation. */
+        if (!wait_until(k_uptime_get() + 600)) { return false; }
+        write_clocked(0x2d, 0);
+        int64_t start = k_uptime_get();
+        const unsigned times[] = {50, 200, 1000, 3000};
+        for (unsigned i = 0; i < sizeof(times) / sizeof(times[0]); i++) {
+            if (!wait_until(start + times[i])) { return false; }
+            obs = read_reg(0x2d);
+            motion = read_reg(0x02);
+            uint8_t quality = read_reg(0x06);
+            uint8_t shutter_hi = read_reg(0x07), shutter_lo = read_reg(0x08);
+            uint8_t pixmax = read_reg(0x09), pixavg = read_reg(0x0a), pixmin = read_reg(0x0b);
+            if (interrupted()) { return false; }
+            passed = (obs & 0x0f) == 0x0f && (obs >> 6) == 0 && !(motion & 4);
+            printk("RUN_TIME ms=%u OBS=%02x MODE=%u low=%x pass=%u MOTION=%02x LSR_FAULT=%u LP_VALID=%u SQUAL=%u SHUTTER=%02x%02x PIX=%u,%u,%u\n",
+                   (unsigned)(k_uptime_get() - start), obs, obs >> 6, obs & 15,
+                   (unsigned)passed, motion, !!(motion & 4), !!(motion & 8),
+                   quality, shutter_hi, shutter_lo, pixmax, pixavg, pixmin);
+            if (motion & 4) { break; }
+        }
+    }
+    if (interrupted()) { return false; }
+    write_clocked(0x11, original);
+    uint8_t restored = read_reg(0x11);
+    printk("RUN_RESTORE expected=%02x actual=%02x\n", original, restored);
+    return !fault && config_ok && passed && restored == original;
+}
+
 static bool initialize_sensor(void)
 {
     printk("INIT reset\n");
@@ -237,9 +290,12 @@ static bool initialize_sensor(void)
                (unsigned)selftest_ok);
     }
     bool write_ok = check_write();
+    bool run_ok = false;
+    if (write_ok && !interrupted()) { run_ok = compare_run(); }
+    printk("RUN_SUMMARY baseline=%u forced_run=%u\n", (unsigned)selftest_ok, (unsigned)run_ok);
     printk("SUMMARY selftest_last=%u write_readback=%u fault=%u\n",
            (unsigned)selftest_ok, (unsigned)write_ok, (unsigned)fault);
-    if (!selftest_ok || !write_ok || interrupted()) {
+    if (!run_ok || !write_ok || interrupted()) {
         printk("DIAG incomplete initialization; motion polling skipped; not a hardware-failure verdict\n");
         return false;
     }

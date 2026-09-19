@@ -33,7 +33,7 @@ jobs:
           west zephyr-export
           west build -s "$GITHUB_WORKSPACE/diagnostics/trackball" -d build -b seeeduino_xiao_ble
           mkdir -p /tmp/tb-artifact
-          cp build/zephyr/zephyr.uf2 /tmp/tb-artifact/mona2-right-trackball-diag-v2.uf2
+          cp build/zephyr/zephyr.uf2 /tmp/tb-artifact/mona2-right-trackball-diag-v3.uf2
           cp build/zephyr/.config /tmp/tb-artifact/build.config
           cp build/zephyr/zephyr.dts /tmp/tb-artifact/build-zephyr.dts
           cp build/zephyr/zephyr.elf /tmp/tb-artifact/firmware.elf
@@ -41,7 +41,7 @@ jobs:
           sha256sum /tmp/tb-artifact/*.uf2 > /tmp/tb-artifact/SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: mona2-right-trackball-diag-v2
+          name: mona2-right-trackball-diag-v3
           path: /tmp/tb-artifact/
           if-no-files-found: error
   raw-gpio:
