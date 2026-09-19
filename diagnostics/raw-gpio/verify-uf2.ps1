@@ -7,6 +7,7 @@ $minAddress = [uint32]::MaxValue
 $maxAddress = 0
 $seen = [Collections.Generic.HashSet[uint32]]::new()
 $foundVectors = $false
+$payloads = [Collections.Generic.SortedDictionary[uint32,byte[]]]::new()
 for ($offset = 0; $offset -lt $data.Length; $offset += 512) {
     $magic0 = [BitConverter]::ToUInt32($data, $offset)
     $magic1 = [BitConverter]::ToUInt32($data, $offset + 4)
@@ -23,6 +24,8 @@ for ($offset = 0; $offset -lt $data.Length; $offset += 512) {
     if ($size -eq 0 -or $size -gt 476 -or $address -lt 0x27000 -or ($address + $size) -gt 0xEC000) { throw 'Payload outside application partition' }
     $minAddress = [Math]::Min($minAddress, $address)
     $maxAddress = [Math]::Max($maxAddress, $address + $size)
+    if ($payloads.ContainsKey($address)) { throw 'Duplicate payload address' }
+    $payloads.Add($address, [byte[]]$data[($offset + 32)..($offset + 31 + $size)])
     if ($address -eq 0x27000) {
         $sp = [BitConverter]::ToUInt32($data, $offset + 32)
         $reset = [BitConverter]::ToUInt32($data, $offset + 36)
@@ -31,7 +34,16 @@ for ($offset = 0; $offset -lt $data.Length; $offset += 512) {
     }
 }
 if (!$foundVectors) { throw 'Application vector table absent' }
-if (![Text.Encoding]::ASCII.GetString($data).Contains($Identifier)) { throw 'Diagnostic identifier absent' }
+$image = [IO.MemoryStream]::new()
+$expectedAddress = $minAddress
+foreach ($part in $payloads.GetEnumerator()) {
+    if ($part.Key -ne $expectedAddress) { throw 'Non-contiguous application payload' }
+    $image.Write($part.Value, 0, $part.Value.Length)
+    $expectedAddress += $part.Value.Length
+}
+$containsIdentifier = [Text.Encoding]::ASCII.GetString($image.ToArray()).Contains($Identifier)
+$image.Dispose()
+if (!$containsIdentifier) { throw 'Diagnostic identifier absent from reconstructed application' }
 [pscustomobject]@{
     Result = 'PASS'
     Blocks = $count
