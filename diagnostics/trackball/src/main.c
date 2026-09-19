@@ -11,7 +11,7 @@
 #include <hal/nrf_gpio.h>
 #include <string.h>
 
-#define ID "MONA2-TRACKBALL-DIAG-v1"
+#define ID "MONA2-TRACKBALL-DIAG-v2"
 #define CS 9
 #define CLK 5
 #define SDIO 4
@@ -176,20 +176,73 @@ static bool probe(void)
     return !fault && valid == 5;
 }
 
+static bool wait_until(int64_t target)
+{
+    while (k_uptime_get() < target) {
+        if (interrupted()) { return false; }
+        k_msleep(5);
+    }
+    return !interrupted();
+}
+
+static bool check_write(void)
+{
+    /* Documented run downshift setting only; no laser/OTP/test-control writes. */
+    uint8_t original = read_reg(0x1b);
+    if (interrupted()) { return false; }
+    printk("WRITE_CHECK reg=1b original=%02x\n", original);
+    const uint8_t values[] = {0x04, 0x05};
+    bool matched = true;
+    for (unsigned i = 0; i < sizeof(values); i++) {
+        write_reg(0x41, 0xba);
+        k_busy_wait(300);
+        write_reg(0x1b, values[i]);
+        write_reg(0x41, 0xb5);
+        if (!wait_until(k_uptime_get() + 10)) { return false; }
+        uint8_t actual = read_reg(0x1b);
+        if (interrupted()) { return false; }
+        printk("WRITE_CHECK expected=%02x actual=%02x match=%u\n",
+               values[i], actual, (unsigned)(values[i] == actual));
+        matched = matched && values[i] == actual;
+    }
+    write_reg(0x41, 0xba);
+    k_busy_wait(300);
+    write_reg(0x1b, original);
+    write_reg(0x41, 0xb5);
+    uint8_t restored = read_reg(0x1b);
+    printk("WRITE_RESTORE expected=%02x actual=%02x\n", original, restored);
+    return !fault && matched && restored == original;
+}
+
 static bool initialize_sensor(void)
 {
     printk("INIT reset\n");
     write_reg(0x3a, 0x5a);
-    k_msleep(200);
+    if (!wait_until(k_uptime_get() + 200)) { return false; }
     if (interrupted() || !probe()) { return false; }
     write_reg(0x41, 0xba);
     k_busy_wait(300);
     write_reg(0x2d, 0x00);
     write_reg(0x41, 0xb5);
-    k_msleep(50);
-    uint8_t obs = read_reg(0x2d);
-    printk("SELFTEST OBS=%02x expected_low_nibble=f\n", obs);
-    if (fault || (obs & 0x0f) != 0x0f) { return false; }
+    int64_t cleared_at = k_uptime_get();
+    const unsigned times[] = {50, 200, 1000, 3000};
+    bool selftest_ok = false;
+    for (unsigned i = 0; i < sizeof(times) / sizeof(times[0]); i++) {
+        if (!wait_until(cleared_at + times[i])) { return false; }
+        uint8_t obs = read_reg(0x2d);
+        if (interrupted()) { return false; }
+        selftest_ok = (obs & 0x0f) == 0x0f;
+        printk("SELFTEST_TIME elapsed_ms=%u OBS=%02x low=%x pass=%u\n",
+               (unsigned)(k_uptime_get() - cleared_at), obs, obs & 0x0f,
+               (unsigned)selftest_ok);
+    }
+    bool write_ok = check_write();
+    printk("SUMMARY selftest_last=%u write_readback=%u fault=%u\n",
+           (unsigned)selftest_ok, (unsigned)write_ok, (unsigned)fault);
+    if (!selftest_ok || !write_ok || interrupted()) {
+        printk("DIAG incomplete initialization; motion polling skipped; not a hardware-failure verdict\n");
+        return false;
+    }
     for (uint8_t reg = 2; reg <= 5; reg++) { (void)read_reg(reg); }
     write_reg(0x41, 0xba);
     k_busy_wait(300);
