@@ -9,6 +9,7 @@ on:
       - "config/*.json"
       - "keymap_drawer.config.yaml"
       - "config/mona2.dtsi"
+      - ".github/workflows/draw.yml"
 
 jobs:
   draw:
@@ -20,6 +21,7 @@ jobs:
       amend_commit: false
       keymap_patterns: "config/*.keymap"
       json_path: "config"
+      draw_args: "mona2_diag:'-j config/mona2.json'"
       config_path: "keymap_drawer.config.yaml" # config file, ignored if not exists
       output_folder: "keymap-drawer"
       destination: "artifact"
