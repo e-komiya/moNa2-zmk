@@ -8,10 +8,15 @@ moNa2とmicroballのZMKファームウェア、キーマップ、3Dモデルを�
 
 ## moNa2 keymap
 
-![moNa2 keymap](keymap-drawer/mona2_01.svg)
+![moNa2 keymap](keymap-drawer/mona2.svg)
 
-キーマップの定義は [`config/mona2.keymap`](config/mona2.keymap)、描画元データは
-[`keymap-drawer/mona2.yaml`](keymap-drawer/mona2.yaml) にあります。
+キーマップの定義は [`config/mona2.keymap`](config/mona2.keymap) です。
+
+## microball keymap
+
+![microball keymap](keymap-drawer/microball.svg)
+
+キーマップの定義は [`config/microball.keymap`](config/microball.keymap) です。
 
 ## Managed keyboards
 
@@ -77,7 +82,9 @@ moNa2左側のEC11ロータリーエンコーダをD5/D0で有効にしていま
 
 [`Draw ZMK Keymap`](https://github.com/e-komiya/moNa2-zmk/actions/workflows/draw.yml) workflowは、
 `config/*.keymap`、対応するJSON、描画設定が変更されたときにキーマップ図を生成します。
-このREADMEに表示しているmoNa2の図は [`keymap-drawer/mona2_01.svg`](keymap-drawer/mona2_01.svg) です。
+生成したSVGとYAMLはActionsの `drawings` artifactに保存し、`keymap-drawer/`にも自動コミットします。
+このREADMEは生成済みの [`mona2.svg`](keymap-drawer/mona2.svg) と
+[`microball.svg`](keymap-drawer/microball.svg) を表示します。
 
 ## Model files
 
