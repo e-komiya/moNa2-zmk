@@ -1,4 +1,4 @@
-layout: {zmk_keyboard: mona2}
+layout: {zmk_keyboard: microball}
 layers:
   win:
   - Q
@@ -16,6 +16,7 @@ layers:
   - D
   - F
   - G
+  - PP
   - ESC
   - {t: H, s: Sft+TAB}
   - {t: J, s: DOWN}
@@ -59,6 +60,7 @@ layers:
   - D
   - F
   - G
+  - Gui+Ctl+M
   - ESC
   - {t: H, s: LEFT}
   - {t: J, s: DOWN}
@@ -108,6 +110,7 @@ layers:
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
   - TAB
   - Z
   - X
@@ -146,6 +149,7 @@ layers:
   - LSHFT
   - LEFT ALT
   - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
   - LEFT
   - DOWN
   - UP ARROW
@@ -183,6 +187,7 @@ layers:
   - F8
   - F9
   - F10
+  - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
@@ -236,7 +241,8 @@ layers:
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
-  - '&studio_unlock'
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - '1'
   - '2'
@@ -275,6 +281,7 @@ layers:
   - $
   - ':'
   - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
   - ;
   - '&'
   - '*'
@@ -302,6 +309,7 @@ layers:
   - {type: held}
   - {t: ▽, type: trans}
   SCROLL:
+  - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
@@ -365,6 +373,7 @@ layers:
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
   - Ctl+E
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
@@ -400,6 +409,7 @@ layers:
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {type: held}
+  - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
@@ -446,6 +456,7 @@ layers:
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {type: held}
+  - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - Gui+[
   - {t: ▽, type: trans}
@@ -496,6 +507,7 @@ layers:
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
   - '5'
   - {t: ▽, type: trans}
   - '4'
@@ -520,9 +532,9 @@ combos:
 - p: [11, 10]
   k: TAB
   l: [win, mac, FUNCTION, ARROW, BLUETOOTH, NUM, SCROLL, ARROW_MAC, TAB_ARROW, browser_history]
-- p: [0, 33]
+- p: [0, 34]
   k: '&bt0'
-- p: [9, 41]
+- p: [9, 42]
   k: '&bt1'
 - p: [9, 5, 0, 4]
   k: '&bootloader'
@@ -530,24 +542,24 @@ combos:
   k: BLUETOOTH
 - p: [8, 9]
   k: '-'
-- p: [7, 17, 19]
+- p: [7, 18, 20]
   k: {t: GAME, h: toggle}
-- p: [17, 18]
+- p: [18, 19]
   k: '&mkp MB1'
-- p: [19, 20]
+- p: [20, 21]
   k: '&mkp MB2'
-- p: [19, 18]
+- p: [20, 19]
   k: {t: '&mkp MB3', h: SCROLL}
   l: [win, mac, GAME, ARROW, FUNCTION, BLUETOOTH, SCROLL, ARROW_MAC, TAB_ARROW, browser_history, GAME_NUM]
-- p: [31, 32]
+- p: [32, 33]
   k: _
 - p: [1, 2]
   k: '{'
   l: [NUM]
-- p: [22, 23]
+- p: [23, 24]
   k: '['
   l: [NUM]
-- p: [30, 31]
+- p: [31, 32]
   k: ']'
   l: [NUM]
 - p: [7, 8]
@@ -556,6 +568,6 @@ combos:
 - p: [12, 11]
   k: (
   l: [NUM]
-- p: [18, 19]
+- p: [19, 20]
   k: )
   l: [NUM]
