@@ -66,6 +66,13 @@ CONFIG_BT_PERIPHERAL_PREF_MAX_INT=12
 
 COROPIT用としてX軸とY軸を反転済みです。追加の向き変更は不要です。
 
+## moNa2 rotary encoder
+
+moNa2左側のEC11ロータリーエンコーダをD5/D0で有効にしています。
+回転操作は通常のWindowsレイヤーでは上下スクロール、macOSレイヤーでは左右スクロール、
+矢印レイヤーでは音量調整として動作します。エンコーダの種類に合わせた
+`steps = <24>`と`triggers-per-rotation = <10>`を使用しています。
+
 ## Keymap drawings
 
 [`Draw ZMK Keymap`](https://github.com/e-komiya/moNa2-zmk/actions/workflows/draw.yml) workflowは、
