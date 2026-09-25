@@ -104,9 +104,13 @@
         status = "disabled";
     };
 
+    right_encoder: encoder_right {
+        status = "disabled";
+    };
+
     sensors: sensors {
         compatible = "zmk,keymap-sensors";
-        sensors = <&left_encoder>;
+        sensors = <&left_encoder &right_encoder>;
         triggers-per-rotation = <10>;
     };
 
