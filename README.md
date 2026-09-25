@@ -61,16 +61,15 @@ Studioとの設定通信はUSB経由です。
 
 ## moNa2 pointing configuration
 
-moNa2右側ではPMW3610を125 Hzに設定し、Bluetooth peripheral intervalを次の値に固定しています。
+moNa2右側では、元のbadjeff版PMW3610ドライバを使用しています。125 Hz相当となるよう、最小レポート間隔を8 msに設定し、Bluetooth peripheral intervalを次の値に固定しています。
 
 ```conf
-CONFIG_PMW3610_POLLING_RATE_125=y
+CONFIG_PMW3610_REPORT_INTERVAL_MIN=8
 CONFIG_BT_PERIPHERAL_PREF_MIN_INT=6
 CONFIG_BT_PERIPHERAL_PREF_MAX_INT=12
 ```
 
-Yu1812版PMW3610ドライバでは、COROPIT用としてY軸のみ反転しています。
-X軸はドライバの標準方向を使用します。
+COROPITでの向きに合わせ、デバイスツリーでX軸とY軸を反転しています。
 
 ## moNa2 rotary encoder
 
