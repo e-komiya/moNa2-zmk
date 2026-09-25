@@ -79,8 +79,12 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Set artifact timestamp
+        id: artifact_timestamp
+        shell: bash
+        run: echo "value=$(TZ=Asia/Tokyo date +'%Y%m%d%H%M%S')" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact/merge@v4
         with:
-          name: firmware
+          name: firmware_${{ steps.artifact_timestamp.outputs.value }}
           pattern: firmware-*
           delete-merged: true
