@@ -1,34 +1,81 @@
-# moNa2 and microball ZMK configuration
+# moNa2 / microball ZMK firmware
 
-This repository manages two independent ZMK firmware configurations.
+moNa2とmicroballのZMKファームウェア、キーマップ、3Dモデルを管理するリポジトリです。
+2台のキーボードは、それぞれ独立したZMKワークスペースとキーマップを使用します。
 
-| Keyboard | Keymap | Firmware artifacts |
-| --- | --- | --- |
-| moNa2 | `config/mona2.keymap` | `mona2-left`, `mona2-right` |
-| microball | `config/microball.keymap` | `microball-left`, `microball-right` |
+[![Build keyboards](https://github.com/e-komiya/moNa2-zmk/actions/workflows/build.yml/badge.svg)](https://github.com/e-komiya/moNa2-zmk/actions/workflows/build.yml)
+[![Draw ZMK Keymap](https://github.com/e-komiya/moNa2-zmk/actions/workflows/draw.yml/badge.svg)](https://github.com/e-komiya/moNa2-zmk/actions/workflows/draw.yml)
 
-The configurations intentionally use separate ZMK workspaces: moNa2 uses the
-current configuration and microball keeps its compatible ZMK v0.2 environment
-and discrete encoder-scroll behavior. Editing one keymap does not change the
-other keyboard.
+## moNa2 keymap
+
+![moNa2 keymap](keymap-drawer/mona2_01.svg)
+
+キーマップの定義は [`config/mona2.keymap`](config/mona2.keymap)、描画元データは
+[`keymap-drawer/mona2.yaml`](keymap-drawer/mona2.yaml) にあります。
+
+## Managed keyboards
+
+| Keyboard | Keymap | ZMK environment | Main side |
+| --- | --- | --- | --- |
+| moNa2 | `config/mona2.keymap` | `config/west.yml` | Right |
+| microball | `config/microball.keymap` | `keyboards/microball/config/west.yml` | Right |
+
+moNa2は現在の構成を使用し、microballは互換性のためZMK v0.2と専用の
+エンコーダスクロール実装を維持しています。一方のキーマップを変更しても、もう一方には反映されません。
 
 ## Firmware builds
 
-The `Build keyboards` workflow creates the four keyboard firmware files and a
-`settings-reset` UF2. Each build also uploads a single `firmware` artifact
-containing all five files. Flash the left and right UF2 that match the keyboard
-being updated.
+[`Build keyboards`](https://github.com/e-komiya/moNa2-zmk/actions/workflows/build.yml) workflowは、
+push、pull request、手動実行で次のUF2を生成します。
 
-Both right-side firmware builds include the USB UART ZMK Studio RPC snippet.
-moNa2 is also configured for BLE pairing and Studio unlocking in
-`config/mona2_r.conf`.
+| UF2 | Target |
+| --- | --- |
+| `mona2-right.uf2` | moNa2右側、メイン側 |
+| `mona2-left.uf2` | moNa2左側 |
+| `mona2-right-diagnostic.uf2` | moNa2右側の診断用 |
+| `microball-right.uf2` | microball右側、メイン側 |
+| `microball-left.uf2` | microball左側 |
+| `settings-reset.uf2` | 保存設定の消去用 |
+
+完了したrunのArtifactsから `firmware` をダウンロードすると、6個のUF2をまとめて取得できます。
+通常更新では、使用するキーボードと左右が一致するUF2を書き込んでください。
+`settings-reset.uf2` はBluetoothを含む保存設定を消去する復旧用で、通常の更新には使用しません。
+
+## Bluetooth and DYA Studio
+
+moNa2とmicroballは通常のBluetoothキーボード接続に対応しています。両方とも右側がメイン側です。
+
+- `Q` + `T`を押しながら `/`: 現在のBluetoothプロファイルを消去
+- `Q` + `T`を押しながら右Shift: 全Bluetoothプロファイルを消去
+
+プロファイルを消去した場合は、PCやスマートフォン側でも登録済みデバイスを削除してから再ペアリングします。
+
+通常版の右側ファームウェアには、DYA Studio用のZMK Studio USB UART snippetが含まれています。
+DYA Studioで設定するときは右側をUSB接続してください。Bluetoothは通常のキー入力に使用でき、
+Studioとの設定通信はUSB経由です。
+
+## moNa2 pointing configuration
+
+moNa2右側ではPMW3610を125 Hzに設定し、Bluetooth peripheral intervalを次の値に固定しています。
+
+```conf
+CONFIG_PMW3610_POLLING_RATE_125=y
+CONFIG_BT_PERIPHERAL_PREF_MIN_INT=6
+CONFIG_BT_PERIPHERAL_PREF_MAX_INT=12
+```
+
+COROPIT用としてX軸とY軸を反転済みです。追加の向き変更は不要です。
 
 ## Keymap drawings
 
-The `Draw ZMK Keymap` workflow produces `mona2.svg` and `microball.svg` in its
-`drawings` artifact whenever either keymap or its layout JSON changes.
+[`Draw ZMK Keymap`](https://github.com/e-komiya/moNa2-zmk/actions/workflows/draw.yml) workflowは、
+`config/*.keymap`、対応するJSON、描画設定が変更されたときにキーマップ図を生成します。
+このREADMEに表示しているmoNa2の図は [`keymap-drawer/mona2_01.svg`](keymap-drawer/mona2_01.svg) です。
 
-## COROPIT orientation
+## Model files
 
-The moNa2 right-side overlay already enables `invert-x` and `invert-y` for
-COROPIT. No additional overlay edit is required.
+- `model/`: 印刷用に編集した3MF/STLと派生モデル
+- `model/original/`: `sayu-hub/zmk-config-moNa2`から取得した未変更の元データ
+- `model/original/README.md`: 元データの取得元とコミット
+
+同名でも内容が異なるモデルがあるため、編集版と元データは別ディレクトリで管理します。
