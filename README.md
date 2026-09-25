@@ -69,7 +69,8 @@ CONFIG_BT_PERIPHERAL_PREF_MIN_INT=6
 CONFIG_BT_PERIPHERAL_PREF_MAX_INT=12
 ```
 
-COROPIT用としてX軸とY軸を反転済みです。追加の向き変更は不要です。
+Yu1812版PMW3610ドライバでは、COROPIT用としてY軸のみ反転しています。
+X軸はドライバの標準方向を使用します。
 
 ## moNa2 rotary encoder
 
